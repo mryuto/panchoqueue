@@ -1,9 +1,13 @@
 package com.panchoqueue.panchoqueue.service;
 
+import com.panchoqueue.panchoqueue.dto.CrearPedidoDetalleRequest;
 import com.panchoqueue.panchoqueue.dto.CrearPedidoRequest;
 import com.panchoqueue.panchoqueue.dto.PedidoResponse;
 import com.panchoqueue.panchoqueue.model.EstadoPedido;
+import com.panchoqueue.panchoqueue.model.Menu;
 import com.panchoqueue.panchoqueue.model.Pedido;
+import com.panchoqueue.panchoqueue.model.PedidoDetalle;
+import com.panchoqueue.panchoqueue.repository.MenuRepository;
 import com.panchoqueue.panchoqueue.repository.PedidoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,9 +21,11 @@ import java.util.Optional;
 public class PedidoService {
 
 	private final PedidoRepository pedidoRepository;
+	private final MenuRepository menuRepository;
 
-	public PedidoService(PedidoRepository pedidoRepository) {
+	public PedidoService(PedidoRepository pedidoRepository, MenuRepository menuRepository) {
 		this.pedidoRepository = pedidoRepository;
+		this.menuRepository = menuRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -48,6 +54,19 @@ public class PedidoService {
 		Pedido pedido = new Pedido();
 		pedido.setCliente(request.cliente().trim());
 		pedido.setEstado(EstadoPedido.PENDIENTE);
+
+		for (CrearPedidoDetalleRequest detalleRequest : request.detalles()) {
+			Menu menu = menuRepository.findById(detalleRequest.menuId())
+					.orElseThrow(() -> new ResponseStatusException(
+							HttpStatus.NOT_FOUND,
+							"Menú no encontrado: " + detalleRequest.menuId()));
+
+			PedidoDetalle detalle = new PedidoDetalle();
+			detalle.setMenu(menu);
+			detalle.setCantidad(detalleRequest.cantidad());
+			pedido.agregarDetalle(detalle);
+		}
+
 		return PedidoResponse.desde(pedidoRepository.save(pedido));
 	}
 
