@@ -32,7 +32,12 @@ public class PedidoService {
 
 	@Transactional(readOnly = true)
 	public List<PedidoResponse> listarCola() {
-		return pedidoRepository.findAllByEstadoOrderByFechaCreacionAscIdAsc(EstadoPedido.PENDIENTE)
+		return listarPorEstado(EstadoPedido.PENDIENTE);
+	}
+
+	@Transactional(readOnly = true)
+	public List<PedidoResponse> listarPorEstado(EstadoPedido estado) {
+		return pedidoRepository.findAllByEstadoOrderByFechaCreacionAscIdAsc(estado)
 				.stream()
 				.map(PedidoResponse::desde)
 				.toList();

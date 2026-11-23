@@ -1,5 +1,7 @@
 package com.panchoqueue.panchoqueue.controller;
 
+import com.panchoqueue.panchoqueue.model.EstadoPedido;
+import com.panchoqueue.panchoqueue.model.Pedido;
 import com.panchoqueue.panchoqueue.repository.PedidoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +83,30 @@ class PedidoControllerTests {
 	}
 
 	@Test
+	void listaPedidosPorCadaEstado() throws Exception {
+		guardarPedido("Pendiente", EstadoPedido.PENDIENTE);
+		guardarPedido("Preparando", EstadoPedido.PREPARANDO);
+		guardarPedido("Listo", EstadoPedido.LISTO);
+		guardarPedido("Entregado", EstadoPedido.ENTREGADO);
+
+		mockMvc.perform(get("/api/pedidos/pendientes"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].cliente").value("Pendiente"));
+
+		mockMvc.perform(get("/api/pedidos/preparando"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].cliente").value("Preparando"));
+
+		mockMvc.perform(get("/api/pedidos/listos"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].cliente").value("Listo"));
+
+		mockMvc.perform(get("/api/pedidos/entregados"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].cliente").value("Entregado"));
+	}
+
+	@Test
 	void validaLaSecuenciaDeEstados() throws Exception {
 		crearPedido("Ana");
 		Long id = pedidoRepository.findAll().get(0).getId();
@@ -129,5 +155,12 @@ class PedidoControllerTests {
 								}
 								""".formatted(cliente)))
 				.andExpect(status().isCreated());
+	}
+
+	private void guardarPedido(String cliente, EstadoPedido estado) {
+		Pedido pedido = new Pedido();
+		pedido.setCliente(cliente);
+		pedido.setEstado(estado);
+		pedidoRepository.saveAndFlush(pedido);
 	}
 }
