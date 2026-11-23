@@ -61,14 +61,23 @@ public class PedidoService {
 	}
 
 	@Transactional
-	public PedidoResponse actualizarEstado(Long id, EstadoPedido nuevoEstado) {
-		Pedido pedido = pedidoRepository.findById(id)
+	public PedidoResponse marcarListo(Long id) {
+		return cambiarEstado(id, EstadoPedido.PREPARANDO, EstadoPedido.LISTO);
+	}
+
+	@Transactional
+	public PedidoResponse marcarEntregado(Long id) {
+		return cambiarEstado(id, EstadoPedido.LISTO, EstadoPedido.ENTREGADO);
+	}
+
+	private PedidoResponse cambiarEstado(Long id, EstadoPedido estadoEsperado, EstadoPedido nuevoEstado) {
+		Pedido pedido = pedidoRepository.findByIdForUpdate(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido no encontrado"));
 
-		if (!pedido.getEstado().puedeAvanzarA(nuevoEstado)) {
+		if (pedido.getEstado() != estadoEsperado || !estadoEsperado.puedeAvanzarA(nuevoEstado)) {
 			throw new ResponseStatusException(
 					HttpStatus.CONFLICT,
-					"No se puede cambiar el estado de " + pedido.getEstado() + " a " + nuevoEstado);
+					"Para cambiar el pedido a " + nuevoEstado + ", debe estar en estado " + estadoEsperado);
 		}
 
 		pedido.setEstado(nuevoEstado);

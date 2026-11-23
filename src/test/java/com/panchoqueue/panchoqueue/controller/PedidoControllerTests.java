@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -111,38 +110,25 @@ class PedidoControllerTests {
 		crearPedido("Ana");
 		Long id = pedidoRepository.findAll().get(0).getId();
 
-		mockMvc.perform(patch("/api/pedidos/{id}/estado", id)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{"estado":"LISTO"}
-								"""))
+		mockMvc.perform(post("/api/pedidos/{id}/entregado", id))
 				.andExpect(status().isConflict());
 
 		mockMvc.perform(post("/api/pedidos/siguiente"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.estado").value("PREPARANDO"));
 
-		mockMvc.perform(patch("/api/pedidos/{id}/estado", id)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{"estado":"LISTO"}
-								"""))
+		mockMvc.perform(post("/api/pedidos/{id}/entregado", id))
+				.andExpect(status().isConflict());
+
+		mockMvc.perform(post("/api/pedidos/{id}/listo", id))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.estado").value("LISTO"));
 
-		mockMvc.perform(patch("/api/pedidos/{id}/estado", id)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{"estado":"ENTREGADO"}
-								"""))
+		mockMvc.perform(post("/api/pedidos/{id}/entregado", id))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.estado").value("ENTREGADO"));
 
-		mockMvc.perform(patch("/api/pedidos/{id}/estado", id)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{"estado":"PREPARANDO"}
-								"""))
+		mockMvc.perform(post("/api/pedidos/{id}/listo", id))
 				.andExpect(status().isConflict());
 	}
 
