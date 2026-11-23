@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -19,14 +21,12 @@ public class Pedido {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "numero_turno", nullable = false)
-	private Integer numeroTurno;
-
 	@Column(nullable = false)
 	private String cliente;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private String estado;
+	private EstadoPedido estado;
 
 	@Column(name = "fecha_creacion", nullable = false, updatable = false)
 	private LocalDateTime fechaCreacion;
@@ -50,14 +50,6 @@ public class Pedido {
 		return id;
 	}
 
-	public Integer getNumeroTurno() {
-		return numeroTurno;
-	}
-
-	public void setNumeroTurno(Integer numeroTurno) {
-		this.numeroTurno = numeroTurno;
-	}
-
 	public String getCliente() {
 		return cliente;
 	}
@@ -66,11 +58,11 @@ public class Pedido {
 		this.cliente = cliente;
 	}
 
-	public String getEstado() {
+	public EstadoPedido getEstado() {
 		return estado;
 	}
 
-	public void setEstado(String estado) {
+	public void setEstado(EstadoPedido estado) {
 		this.estado = estado;
 	}
 
